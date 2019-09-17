@@ -5,7 +5,7 @@ open chap1Theory;
 
 val _ = new_theory "globalCompleteness";
 
-
+(*
 val (KGproof_rules, KGproof_ind, KGproof_cases) = Hol_reln`
   KGproof (Ax:'a form set) [] /\
   (!p form1 form2.
@@ -20,10 +20,10 @@ val (KGproof_rules, KGproof_ind, KGproof_cases) = Hol_reln`
   (!p form. KGproof Ax p /\ ptaut form ==> KGproof Ax (p ++ [form])) /\
   (!p form. KGproof Ax p /\ form IN Ax ==> KGproof Ax (p ++ [form]))
 `;    
-
+*)
  
 
-Definition CPLAxioms:
+Definition CPLAxioms_def:
 CPLAxioms = {A -> (B -> A) | T } ∪ 
             {NOT (NOT A) -> A | T} ∪
             {(A -> (B ->C)) -> ((A -> B) -> (B -> C))| T} 
@@ -31,17 +31,20 @@ End
 
 
 (* add type constraint *)
-Definition KAxioms:
+Definition KAxioms_def:
   KAxioms = CPLAxioms ∪
            {(□ (A -> B)) -> ((□ A) -> (□ B)) | T}
 End
 
 
-
+fs[]
+rw[]
+simp[]
+metis_tac[]
 (* how to make Ax into a parameter gtt takes rather than a universal variable *)
 Inductive gtt:
 	(∀f. f ∈ G ⇒ gtt Ax G f) ∧
-	(∀f. f ∈ Ax ⇒ gtt Ax G f) ∧
+	(∀f. f ∈ Ax ∧ (Ax = CPLAxioms ∨ Ax = KAxioms) ⇒ gtt Ax G f) ∧
 	(∀f1 f2. gtt Ax G f1 ∧ gtt Ax G (IMP f1 f2) ⇒ gtt Ax G f2) ∧
 	(∀f. gtt Ax G f ⇒ gtt Ax G (□ f))
 End
@@ -50,9 +53,13 @@ Theorem gttSubst:
  ∀s f. gtt Ax G f ⇒ gtt Ax {subst s g | g ∈ G} (subst s f)
 Proof 
   Induct_on `gtt` >> 
-  rw[] >> 
-  rw[gtt_rules] 
-    >- ()
+  rw[gtt_rules, subst_def] 
+    >- (`(subst s f) ∈ {subst s g| g ∈ G}` suffices_by rw[gtt_rules] 
+          >> fs[] >> metis_tac[])
+    >- (`(subst s f) ∈ CPLAxioms` suffices_by rw[gtt_rules] 
+          >> fs[CPLAxioms_def] >> rw[subst_def] >> cheat >> cheat >> cheat)
+    >- (`(subst s f) ∈ KAxioms` suffices_by rw[gtt_rules] 
+          >> fs[KAxioms_def] >> rw[subst_def] >> cheat)
 
 QED
 
