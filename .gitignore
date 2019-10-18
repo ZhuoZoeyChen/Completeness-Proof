@@ -3,6 +3,10 @@ chap1Theory.sig
 chap1Theory.sml
 chap1Theory.ui
 chap1Theory.uo
+chap1Script.sml.d
+chap1Theory.sig.d
+chap1Theory.sml.d
+lastmaker
 globalCompletenessTheory.dat
 globalCompletenessTheory.sig
 globalCompletenessTheory.sml
