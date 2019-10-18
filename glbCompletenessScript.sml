@@ -107,25 +107,31 @@ Proof
   rw[BOX_def]
 QED
 
-Theorem ptaut_AND2:
+Theorem subst_IMP[simp]:
+  subst f (IMP form1 form2) = IMP (subst f form1) (subst f form2)
+Proof 
+  rw[IMP_def]
+QED 
+
+Theorem ptaut_AND2[simp]:
   ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 1))
 Proof 
   simp[ptaut_def, IMP_def, AND_def]
 QED 
 
-Theorem ptaut_AND1:
+Theorem ptaut_AND1[simp]:
   ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 0))
 Proof 
   simp[ptaut_def, IMP_def, AND_def]
 QED 
 
-Theorem ptaut_A_OR_NOT_A:
+Theorem ptaut_A_OR_NOT_A[simp]:
   ptaut (DISJ (VAR 0) (NOT(VAR 0)))
 Proof 
  simp[ptaut_def]
 QED 
 
-Theorem ptaut_NOT_A_OR_A:
+Theorem ptaut_NOT_A_OR_A[simp]:
   ptaut (DISJ (NOT(VAR 0)) (VAR 0))
 Proof 
  simp[ptaut_def]
@@ -163,7 +169,6 @@ Proof
   metis_tac[gtt_rules]
 QED 
 
-
 Theorem gttDoubleImp:
   gtt KAxioms G (DOUBLE_IMP A B) ⇒ (gtt KAxioms G A ⇔ gtt KAxioms G B)
 Proof 
@@ -172,23 +177,49 @@ Proof
   >> `gtt KAxioms G (B -> A)` by metis_tac[conj2] >> metis_tac[gtt_rules]
 QED
 
-Theorem gtt_IMP:
-  gtt KAxioms G (A -> B) ⇔ (gtt KAxioms G A ⇒ gtt KAxioms G B)
-Proof 
-   rw[IMP_def] >> rw[EQ_IMP_THM] >> fs[]
-  >- (`gtt KAxioms G (A -> B)` by metis_tac[conj1] >> metis_tac[gtt_rules])
-  >> rw[] >> cheat
-QED 
 
 Theorem gtt_not_not:
   gtt KAxioms G (A -> ¬¬A)
 Proof 
-  rw[IMP_def] >> `ptaut (DISJ (VAR 0) (¬(VAR 0)))` by rw[ptaut_A_OR_NOT_A] >>
+  rw[IMP_def] >> Cases_on `A`
+
+  `ptaut (DISJ (VAR 0) (¬(VAR 0)))` by rw[ptaut_A_OR_NOT_A] >>
   cheat
 QED 
 
+
+(*
+val subst_def =
+  Define
+    `subst f FALSE = FALSE /\
+     subst f (VAR p) = f p /\
+     subst f (DISJ form1 form2) = DISJ (subst f form1) (subst f form2) /\
+     subst f (NOT form) = NOT (subst f form) /\
+     subst f (DIAM form) = DIAM (subst f form)`;
+
+val peval_def = Define`
+    peval σ (VAR p) = σ p /\
+    (peval σ (DISJ f1 f2) <=> peval σ f1 \/ peval σ f2) /\
+    peval σ FALSE = F /\
+    peval σ (NOT f) = ¬peval σ f /\
+    peval σ (DIAM f) = F`;
+
+val _ = export_rewrites["peval_def"]
+
+val ptaut_def = Define`
+    ptaut f <=> propform f /\ !σ. peval σ f = T`;
+*)
+
+(* MIGHT DELETE 
+Theorem ptaut_DIAM[simp]:
+  ptaut (DIAM f) = F
+Proof 
+  rw[ptaut_def, peval_def]
+QED
+*)
+
 Theorem gTk:
- ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p)  ⇒ gtt (Ax ∪ KAxioms) ∅ f)
+ ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KAxioms) ∅ f)
 Proof
   Induct_on `KGproof` >> rw[]
   >- metis_tac[]
@@ -205,9 +236,9 @@ Proof
         `(□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)) ∈ (Ax ∪ KAxioms)` by simp[KAxioms_def] >>
       metis_tac[gtt_rules]) 
   >- simp[]
-  >- (simp[BOX_def] >>  >> 
-      cheat 
-  rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> rw[ptaut_def, not_not]
+  >- (rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> 
+      rw[IMP_def] >> 
+      >> rw[ptaut_def]
   )
   >- simp[]
   >- rw[BOX_def] >> cheat (*box and diamond*)
