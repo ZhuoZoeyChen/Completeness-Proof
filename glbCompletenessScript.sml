@@ -113,31 +113,19 @@ Proof
   rw[IMP_def]
 QED 
 
-Theorem ptaut_AND2[simp]:
-  ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 1))
+(*  NOT NOT A = A 
+    A OR NOT A = T
+    AND elimination 
+*)
+Theorem ptaut_thms[simp]:
+  ptaut (¬¬(VAR 0) -> (VAR 0)) ∧ ptaut ((VAR 0) -> ¬¬(VAR 0)) ∧
+  ptaut (DISJ (¬VAR 0) (VAR 0)) ∧ ptaut (DISJ (VAR 0) (¬VAR 0)) ∧
+  ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 0)) ∧ ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 1))
 Proof 
-  simp[ptaut_def, IMP_def, AND_def]
-QED 
-
-Theorem ptaut_AND1[simp]:
-  ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 0))
-Proof 
-  simp[ptaut_def, IMP_def, AND_def]
-QED 
-
-Theorem ptaut_A_OR_NOT_A[simp]:
-  ptaut (DISJ (VAR 0) (NOT(VAR 0)))
-Proof 
- simp[ptaut_def]
-QED 
-
-Theorem ptaut_NOT_A_OR_A[simp]:
-  ptaut (DISJ (NOT(VAR 0)) (VAR 0))
-Proof 
- simp[ptaut_def]
+  simp[ptaut_def, AND_def, IMP_def]
 QED
 
-Theorem gttExt:
+Theorem gtt_Ext:
   gtt Ax G f ⇒ gtt (Ax ∪ Ext) G f
 Proof
   Induct_on `gtt` >> rw[gtt_rules] >> metis_tac[gtt_rules]
@@ -146,7 +134,7 @@ QED
 Theorem conj1:
   gtt KAxioms G (AND A B) ⇒ gtt KAxioms G A
 Proof 
-  `ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 0))` by rw[ptaut_AND1] >>
+  `ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 0))` by rw[ptaut_thms] >>
   `(IMP (AND (VAR 0) (VAR 1)) (VAR 0)) ∈ {a | ptaut a}` by simp[] >>
   `subst (λs. if s = 0 then A else B) (IMP (AND (VAR 0) (VAR 1)) (VAR 0)) = (IMP (AND A B) A)` 
     by simp[subst_def, AND_def, IMP_def] >>
@@ -159,7 +147,7 @@ QED
 Theorem conj2:
   gtt KAxioms G (AND A B) ⇒ gtt KAxioms G B
 Proof 
-  `ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 1))` by rw[ptaut_AND2] >>
+  `ptaut (IMP (AND (VAR 0) (VAR 1)) (VAR 1))` by rw[ptaut_] >>
   `(IMP (AND (VAR 0) (VAR 1)) (VAR 1)) ∈ {a | ptaut a}` by simp[] >>
   `subst (λs. if s = 0 then A else B) (IMP (AND (VAR 0) (VAR 1)) (VAR 1)) = (IMP (AND A B) B)` 
     by simp[subst_def, AND_def, IMP_def] >>
@@ -177,79 +165,73 @@ Proof
   >> `gtt KAxioms G (B -> A)` by metis_tac[conj2] >> metis_tac[gtt_rules]
 QED
 
-
-Theorem gtt_not_not:
-  gtt KAxioms G (A -> ¬¬A)
+(* All instances of Axims are gtt provable *)
+Theorem subst_ptaut[simp]:
+  ptaut (Q: num form)  ∧ (∃f. subst f Q = P) ==> gtt KAxioms G P
 Proof 
-  rw[IMP_def] >> Cases_on `A`
-
-  `ptaut (DISJ (VAR 0) (¬(VAR 0)))` by rw[ptaut_A_OR_NOT_A] >>
-  cheat
+  rw[] >>
+  `Q ∈ {a | ptaut a} ∪ {□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)}` by simp[UNION_DEF] >>
+  metis_tac[gtt_rules, KAxioms_def, CPLAxioms_def]
 QED 
 
-
+(* gtt Ax ∅ P ==> gtt Ax ∅ (subst s P)*)
 (*
-val subst_def =
-  Define
-    `subst f FALSE = FALSE /\
-     subst f (VAR p) = f p /\
-     subst f (DISJ form1 form2) = DISJ (subst f form1) (subst f form2) /\
-     subst f (NOT form) = NOT (subst f form) /\
-     subst f (DIAM form) = DIAM (subst f form)`;
-
-val peval_def = Define`
-    peval σ (VAR p) = σ p /\
-    (peval σ (DISJ f1 f2) <=> peval σ f1 \/ peval σ f2) /\
-    peval σ FALSE = F /\
-    peval σ (NOT f) = ¬peval σ f /\
-    peval σ (DIAM f) = F`;
-
-val _ = export_rewrites["peval_def"]
-
-val ptaut_def = Define`
-    ptaut f <=> propform f /\ !σ. peval σ f = T`;
+Theorem gtt_empty_subst:
+  gtt (Ax: num form -> bool) ∅ (P:num form) ⇒ gtt Ax ∅ (subst (s:num -> num form) P) 
+Proof 
+  rw[] >> `(subst s P) ∈ ∅ ∨ (∃f s. (subst s P) = subst s f ∧ f ∈ Ax) ∨
+            (∃(f1: num form). gtt Ax G f1 ∧ gtt Ax ∅ (f1 -> (subst s P))) ∨
+            ∃(f: num form). (subst s P) = □ f ∧ gtt Ax ∅ f` suffices_by simp[gtt_cases]
+  Cases_on `Ax = ∅` >> rw[] >- (Cases_on `gtt_cases`)rw[gtt_rules] >>  
+QED
 *)
 
-(* MIGHT DELETE 
-Theorem ptaut_DIAM[simp]:
-  ptaut (DIAM f) = F
+Theorem gtt_not_not:
+  gtt KAxioms G (A -> ¬¬A) ∧ gtt KAxioms G (¬¬A -> A)
 Proof 
-  rw[ptaut_def, peval_def]
-QED
+  `ptaut (¬¬(VAR 0) -> (VAR 0))  ∧ ptaut ((VAR 0) -> ¬¬(VAR 0))` by simp[ptaut_thms] >>
+  rw[]
+  >- (`subst (λs. A) ((VAR 0) -> ¬¬(VAR 0)) = (A -> ¬¬A)` 
+    by simp[subst_def] >> metis_tac[subst_ptaut])
+  >>  `subst (λs. A) (¬¬(VAR 0) -> (VAR 0)) = (¬¬A -> A)` 
+    by simp[subst_def] >> metis_tac[subst_ptaut]
+QED 
+
+(* gtt Ax ∅ (A->B) ==> gtt Ax ∅ (DIAM A -> DIAM B)*)
+(* may not be necessary *)
+(*
+Theorem gtt_add_DIAM:
+  gtt Ax ∅ ((VAR 0) -> (VAR 1)) ⇒ gtt Ax ∅ (DIAM (VAR 0) -> DIAM (VAR 1))
+Proof 
+  `subst (λs. DIAM (VAR s)) ((VAR 0) -> (VAR 1)) = (DIAM (VAR 0) -> DIAM (VAR 1))` by simp[subst_def] >>
+
+  metis_tac[subst_ptaut]
+QED 
 *)
 
 Theorem gTk:
  ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KAxioms) ∅ f)
 Proof
-  Induct_on `KGproof` >> rw[]
-  >- metis_tac[]
-  >- metis_tac[gtt_rules]
-  >- metis_tac[]
-  >- metis_tac[gttEmpG] 
-  >- simp[]
-  >- rw[gtt_rules]
-  >- simp[]
-  (* K axioms *)
+  Induct_on `KGproof` >> rw[] >> simp[gtt_rules, gttEmpG]
+  >- metis_tac[gtt_rules]  (* MP *)
   >- (`subst (λs. if s = 0 then form1 else form2)
         (□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1))
         = (□ (form1 -> form2) -> □ form1 -> □ form2) ` by simp[] >>
         `(□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)) ∈ (Ax ∪ KAxioms)` by simp[KAxioms_def] >>
-      metis_tac[gtt_rules]) 
-  >- simp[]
-  >- (rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> 
-      rw[IMP_def] >> 
-      >> rw[ptaut_def]
-  )
-  >- simp[]
-  >- rw[BOX_def] >> cheat (*box and diamond*)
-  >- (rw[subst_self, subst_def, gtt_rules, KAxioms_def, CPLAxioms_def] >> 
-    rw[] >> cheat)
- (* `gtt (Ax ∪ KAxioms) ∅ (subst s f)` suffices_by rw[subst_self]
-  simp[KAxioms_def, CPLAxioms_def, gtt_rules]*)
-  >- simp[]
-  >> rw[gttAx]
-  (*>- (first_x_assum drule >>  qmatch_abbrev_tac`gtt Ax G f ⇒ gtt Ax G (subst s f)` >> rw[gttSubst])
-*)
+      metis_tac[gtt_rules])  (* K axiom instance *)
+(* DIAM q -> NOT BOX (NOT q) *)
+  >- ((*rw[BOX_def] >> `subst (λs. form) ((VAR 0) -> ¬¬ (VAR 0)) = (form -> ¬¬ form)` by simp[ptaut_thms] >>
+     `ptaut ((VAR 0) -> ¬¬ (VAR 0))` by simp[ptaut_thms] >> 
+     `gtt KAxioms ∅ (form -> ¬¬form)` by metis_tac[subst_ptaut] >>
+     `gtt (Ax ∪ KAxioms) ∅ (form -> ¬¬form)` by metis_tac[gtt_Ext, UNION_COMM] >>
+     rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> 
+      rw[IMP_def] 
+      >> rw[ptaut_def]*)
+      rw[] >> cheat)
+(* NOT BOX (NOT q) -> DIAM q *)
+  >- cheat
+  >- metis_tac[subst_ptaut, gtt_Ext, UNION_COMM, subst_self] (* ptaut f *)
+  >> metis_tac[gtt_Ext, UNION_COMM, subst_self, gtt_rules]
 QED
 
 
