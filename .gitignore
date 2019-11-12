@@ -12,3 +12,8 @@ globalCompletenessTheory.sig
 globalCompletenessTheory.sml
 globalCompletenessTheory.ui
 globalCompletenessTheory.uo
+glbCompletenessTheory.dat
+glbCompletenessTheory.sig
+glbCompletenessTheory.sml
+.HOLMK/glbCompletenessScript.sml.d
+.hollogs/glbCompletenessTheory.sml
