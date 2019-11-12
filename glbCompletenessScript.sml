@@ -108,7 +108,7 @@ Proof
 QED
 
 Theorem gttK:
- ∀form1 form2. gtt KAxioms G (subst (λs. if s=0 then form1 else form2) (□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)))
+  ∀form1 form2. gtt KAxioms G (subst (λs. if s=0 then form1 else form2) (□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)))
 Proof 
   rw[subst_def, gtt_rules, KAxioms_def]
 QED
@@ -130,14 +130,16 @@ Theorem ptaut_thms[simp]:
   ptaut ((VAR 0) -> (DISJ (VAR 0) (VAR 1))) ∧
   ptaut (DOUBLE_IMP (VAR 0) ¬¬(VAR 0)) ∧
   ptaut (DOUBLE_IMP (AND (VAR 0) (VAR 1)) (AND (VAR 1) (VAR 0))) ∧
-  ptaut ((VAR 0) -> ((VAR 1) -> (AND (VAR 1) (VAR 0))))
+  ptaut ((VAR 0) -> ((VAR 1) -> (AND (VAR 1) (VAR 0))))  ∧
+  ptaut (DOUBLE_IMP ⊥ ⊥) ∧
+  ptaut (IMP (DOUBLE_IMP (VAR 0) (VAR 1)) (DOUBLE_IMP (NOT (VAR 0)) (NOT (VAR 1))))
 Proof 
   simp[ptaut_def, AND_def, IMP_def, DOUBLE_IMP_def] >>
   metis_tac[]
 QED
 
 Theorem ptaut_disj_double_imp[simp]:
-  ptaut (DOUBLE_IMP (AND (DOUBLE_IMP (VAR 0) (VAR 1)) (DOUBLE_IMP (VAR 2) (VAR 3))) (DOUBLE_IMP (DISJ (VAR 0) (VAR 2)) (DISJ (VAR 1) (VAR 3))))
+  ptaut (IMP (DOUBLE_IMP (VAR 0) (VAR 1)) (IMP (DOUBLE_IMP (VAR 2) (VAR 3)) ( DOUBLE_IMP (DISJ (VAR 0) (VAR 2)) (DISJ (VAR 1) (VAR 3))) ) )
 Proof
   simp[ptaut_def, AND_def, IMP_def, DOUBLE_IMP_def] >>
   metis_tac[]
@@ -145,7 +147,7 @@ QED
 
 (* All instances of Axims are gtt provable *)
 Theorem subst_ptaut[simp]:
-  ptaut (Q: num form)  ∧ (∃f. subst f Q = P) ==> gtt KAxioms G P
+∀Q P G.  ptaut (Q: num form)  ∧ (∃f. subst f Q = P) ==> gtt KAxioms G P
 Proof 
   rw[] >>
   `Q ∈ {a | ptaut a} ∪ {□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)}` by simp[UNION_DEF] >>
@@ -258,15 +260,26 @@ Proof
    metis_tac[subst_ptaut]
 QED 
 
+
 Theorem gtt_disj_double_imp:
-∀A B C D. 
-  gtt KAxioms ∅ (DOUBLE_IMP A B) ∧ gtt KAxioms ∅ (DOUBLE_IMP C D) 
-⇒ gtt KAxioms ∅ (DOUBLE_IMP (DISJ A C) (DISJ B D))
+∀XA XB YA YB. 
+  gtt KAxioms ∅ (DOUBLE_IMP XA XB) ∧ gtt KAxioms ∅ (DOUBLE_IMP YA YB) 
+⇒ gtt KAxioms ∅ (DOUBLE_IMP (DISJ XA YA) (DISJ XB YB))
 Proof 
   rw[] 
 QED 
 
 (*
+Theorem gtt_ptaut[simp]:
+  ∀fml G. ptaut fml ⇒ gtt KAxioms G fml
+Proof 
+  rw[] >> `fml = subst (λi. VAR i) fml` by rw[subst_self]
+  >> irule subst_ptaut
+  >> qexists_tac`fml` >> rw[]
+  >- 
+  >> 
+QED 
+*)
 
 Theorem gtt_subst_eqv_terms:
 ∀X A B. 
@@ -278,15 +291,39 @@ Proof
   Induct_on`X` >> rw[]
   >- (rename [`gtt KAxioms ∅ (DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y))
              (DISJ (subst (λv. B) X) (subst (λv. B) Y)))`] 
-      >> 
-             )
-  >-
-  >-
+      >> `ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (VAR 2) (VAR 3) ->
+       DOUBLE_IMP (DISJ (VAR 0) (VAR 2)) (DISJ (VAR 1) (VAR 3)))` by rw[ptaut_disj_double_imp]
+      >> `subst (λs. case s of 
+                       | 0 => subst (λv. A) X
+                       | 1 => subst (λv. B) X
+                       | 2 => subst (λv. A) Y
+                       | 3 => subst (λv. B) Y
+                  ) (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (VAR 2) (VAR 3) ->
+       DOUBLE_IMP (DISJ (VAR 0) (VAR 2)) (DISJ (VAR 1) (VAR 3))) =
+        (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) -> DOUBLE_IMP (subst (λv. A) Y) (subst (λv. B) Y) ->
+       DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y)) (DISJ (subst (λv. B) X) (subst (λv. B) Y)))`  
+       by simp[DOUBLE_IMP_def, subst_def, AND_def, IMP_def] 
+       >> `gtt KAxioms ∅ (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) ->
+         DOUBLE_IMP (subst (λv. A) Y) (subst (λv. B) Y) ->
+         DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y))
+           (DISJ (subst (λv. B) X) (subst (λv. B) Y)))` by metis_tac[subst_ptaut]
+       >> metis_tac[gtt_rules])
+  >- (`ptaut (DOUBLE_IMP ⊥ ⊥)` by simp[] >>
+      irule subst_ptaut >> qexists_tac `DOUBLE_IMP ⊥ ⊥` >> rw[] >> qexists_tac`λs. A`
+      >> metis_tac[subst_def, DOUBLE_IMP_def, AND_def, IMP_def, subst_ptaut])
+  >- (`ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (¬VAR 0) (¬VAR 1))` by simp[] 
+      >> `subst (λs. if s = 0 then (subst (λv. A) X) else (subst (λv. B) X)) 
+           (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (¬VAR 0) (¬VAR 1))
+             = (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) -> DOUBLE_IMP (¬(subst (λv. A) X)) (¬(subst (λv. B) X)))`
+            by simp[DOUBLE_IMP_def, AND_def, IMP_def, subst_def]
+      >> `gtt KAxioms ∅ (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) ->
+         DOUBLE_IMP (¬subst (λv. A) X) (¬subst (λv. B) X))` by metis_tac[subst_ptaut]
+      >> metis_tac[gtt_rules]
+      )
   >> 
-  rw[DOUBLE_IMP_def] >> rw[AND_def]
+  >> rw[DOUBLE_IMP_def] >> rw[IMP_def]
 QED
-*)
-(*
+
 
 Theorem gTk:
  ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KAxioms) ∅ f)
@@ -313,7 +350,7 @@ Proof
   >> metis_tac[gtt_Ext, UNION_COMM, subst_self, gtt_rules]
 QED
 
-*)
+
 Theorem kTg:
   (∀f ∈ p. gtt (Ax ∪ KAxioms) ∅ f) ⇒ ∀Ax p. KGproof Ax p
 Proof 
