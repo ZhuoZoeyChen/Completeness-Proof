@@ -22,15 +22,11 @@ val (KGproof_rules, KGproof_ind, KGproof_cases) = Hol_reln`
 `;    
 *)
  
- (*
- TODO
-  10 Sep 
+(*
 
-  DONE 1. Change CPLAxioms to use ptaut; (ptaut includes all the propositional axioms)
   {might use Logics of Time and Computation. R. I. Goldblatt CSLI Lecture Notes Number 7,
 Center for the Study of Language and Information, Stanford, 1987}
 
-  DONE 2. use subst instead of set comprehension (?) (use atomic formulae in the set)
 *)
 
 Definition CPLAxioms_def:
@@ -208,16 +204,16 @@ QED
 
 
 (* gtt Ax ∅ P ==> gtt Ax ∅ (subst s P)*)
-(*
+
 Theorem gtt_empty_subst:
-  gtt (Ax: num form -> bool) ∅ (P:num form) ⇒ gtt Ax ∅ (subst (s:num -> num form) P) 
+∀P.  gtt (Ax: num form -> bool) ∅ (P:num form) ⇒ gtt Ax ∅ (subst (s:num -> num form) P) 
 Proof 
-  rw[] >> `(subst s P) ∈ ∅ ∨ (∃f s. (subst s P) = subst s f ∧ f ∈ Ax) ∨
-            (∃(f1: num form). gtt Ax G f1 ∧ gtt Ax ∅ (f1 -> (subst s P))) ∨
-            ∃(f: num form). (subst s P) = □ f ∧ gtt Ax ∅ f` suffices_by simp[gtt_cases]
-  Cases_on `Ax = ∅` >> rw[] >- (Cases_on `gtt_cases`)rw[gtt_rules] >>  
+  Induct_on`gtt`>> rw[] 
+  >- (rw[subst_compose] >> metis_tac[gtt_rules])
+  >- metis_tac[gtt_rules]
+  >> metis_tac[gtt_rules] 
 QED
-*)
+
 
 Theorem gtt_not_not:
   ∀A. gtt KAxioms G (A -> ¬¬A) ∧ gtt KAxioms G (¬¬A -> A)
@@ -239,17 +235,40 @@ Proof
    metis_tac[subst_ptaut]
 QED 
 
+Theorem gtt_diam_not_not:
+∀G A.  gtt KAxioms G (DIAM (¬¬ A)) ⇔ gtt KAxioms G (DIAM A)
+Proof 
+  rw[EQ_IMP_THM] 
+  >- 
+  >>
+  Induct_on`gtt` >> rw[]
+QED 
+
+Theorem gtt_A_not_not_B:
+  ∀A B. gtt KAxioms G (A -> B) ⇒ gtt KAxioms G (A -> ¬¬B)
+Proof 
+  Induct_on`gtt` >> rw[]
+  >- (fs[IMP_def] >> )
+  >-
+  >-
+  >>
+QED 
 
 (* gtt Ax ∅ ((A->B) -> (DIAM A -> DIAM B))*)
-(*
+
 Theorem gtt_add_DIAM:
- ∀A B. gtt Ax ∅ ((A->B) -> (DIAM A -> DIAM B))
+ ∀A B. gtt Ax ∅ (A -> B) ⇒ gtt Ax ∅ (DIAM A -> DIAM B)
 Proof 
+  Induct_on`gtt` >> rw[]
+  >- 
+  >-
+  >>
+
   `subst (λs. DIAM (VAR s)) ((VAR 0) -> (VAR 1)) = (DIAM (VAR 0) -> DIAM (VAR 1))` by simp[subst_def] >>
 
   metis_tac[subst_ptaut]
 QED 
-*)
+
 
 Theorem gtt_double_imp:
  ∀A. gtt KAxioms ∅ (DOUBLE_IMP A A) 
@@ -266,7 +285,7 @@ Theorem gtt_disj_double_imp:
   gtt KAxioms ∅ (DOUBLE_IMP XA XB) ∧ gtt KAxioms ∅ (DOUBLE_IMP YA YB) 
 ⇒ gtt KAxioms ∅ (DOUBLE_IMP (DISJ XA YA) (DISJ XB YB))
 Proof 
-  rw[] 
+  cheat
 QED 
 
 (*
@@ -280,6 +299,14 @@ Proof
   >> 
 QED 
 *)
+Theorem gtt_transitive_double_imp:
+∀G A B C.  gtt KAxioms G (DOUBLE_IMP A B) ∧ gtt KAxioms G (DOUBLE_IMP B C)
+          ==> 
+           gtt KAxioms G (DOUBLE_IMP A C)
+Proof 
+
+QED
+
 
 Theorem gtt_subst_eqv_terms:
 ∀X A B. 
@@ -287,9 +314,9 @@ Theorem gtt_subst_eqv_terms:
   ==> 
     gtt KAxioms ∅ (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X))
 Proof 
-  rw[] >>
-  Induct_on`X` >> rw[]
-  >- (rename [`gtt KAxioms ∅ (DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y))
+  Induct_on`X` 
+  >- rw[]
+  >- (rw[] >> rename [`gtt KAxioms ∅ (DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y))
              (DISJ (subst (λv. B) X) (subst (λv. B) Y)))`] 
       >> `ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (VAR 2) (VAR 3) ->
        DOUBLE_IMP (DISJ (VAR 0) (VAR 2)) (DISJ (VAR 1) (VAR 3)))` by rw[ptaut_disj_double_imp]
@@ -308,19 +335,20 @@ Proof
          DOUBLE_IMP (DISJ (subst (λv. A) X) (subst (λv. A) Y))
            (DISJ (subst (λv. B) X) (subst (λv. B) Y)))` by metis_tac[subst_ptaut]
        >> metis_tac[gtt_rules])
-  >- (`ptaut (DOUBLE_IMP ⊥ ⊥)` by simp[] >>
+  >- (rw[] >> `ptaut (DOUBLE_IMP ⊥ ⊥)` by simp[] >>
       irule subst_ptaut >> qexists_tac `DOUBLE_IMP ⊥ ⊥` >> rw[] >> qexists_tac`λs. A`
       >> metis_tac[subst_def, DOUBLE_IMP_def, AND_def, IMP_def, subst_ptaut])
-  >- (`ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (¬VAR 0) (¬VAR 1))` by simp[] 
+  >- (rw[] >> `ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (¬VAR 0) (¬VAR 1))` by simp[] 
       >> `subst (λs. if s = 0 then (subst (λv. A) X) else (subst (λv. B) X)) 
            (DOUBLE_IMP (VAR 0) (VAR 1) -> DOUBLE_IMP (¬VAR 0) (¬VAR 1))
              = (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) -> DOUBLE_IMP (¬(subst (λv. A) X)) (¬(subst (λv. B) X)))`
             by simp[DOUBLE_IMP_def, AND_def, IMP_def, subst_def]
       >> `gtt KAxioms ∅ (DOUBLE_IMP (subst (λv. A) X) (subst (λv. B) X) ->
          DOUBLE_IMP (¬subst (λv. A) X) (¬subst (λv. B) X))` by metis_tac[subst_ptaut]
-      >> metis_tac[gtt_rules]
-      )
+      >> metis_tac[gtt_rules])
+  >> rw[]
   >> 
+  >> metis_tac[gtt_empty_subst]
   >> rw[DOUBLE_IMP_def] >> rw[IMP_def]
 QED
 
@@ -343,7 +371,7 @@ Proof
      rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> 
       rw[IMP_def] 
       >> rw[ptaut_def]*)
-      rw[] >> cheat)
+      rw[KAxioms_def, BOX_def] >> cheat)
 (* NOT BOX (NOT q) -> DIAM q *)
   >- cheat
   >- metis_tac[subst_ptaut, gtt_Ext, UNION_COMM, subst_self] (* ptaut f *)
