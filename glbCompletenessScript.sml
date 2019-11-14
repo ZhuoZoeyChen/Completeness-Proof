@@ -40,6 +40,15 @@ Definition KAxioms_def:
       {(□ (VAR 0 -> VAR 1)) -> ((□ (VAR 0)) -> (□ (VAR 1)))}
 End
 
+Definition KDAxioms_def:
+  KDAxioms = 
+      CPLAxioms 
+    ∪
+      {(□ (VAR 0 -> VAR 1)) -> ((□ (VAR 0)) -> (□ (VAR 1)))}
+    ∪ 
+      {DOUBLE_IMP (◇ (VAR 0)) (¬□ (¬VAR 0))}
+End
+
 Inductive gtt:
 	(∀f. f ∈ G ⇒ gtt Ax G f) ∧
 	(∀f s. f ∈ Ax ⇒ gtt Ax G (subst s f)) ∧ 
@@ -116,7 +125,7 @@ QED
     A <-> A
     A -> A OR B
     A <-> NOT NOT A
-    A -> (B -> (A AND B))
+
 *)
 Theorem ptaut_thms[simp]:
   ptaut (¬¬(VAR 0) -> (VAR 0)) ∧ ptaut ((VAR 0) -> ¬¬(VAR 0)) ∧
@@ -126,9 +135,14 @@ Theorem ptaut_thms[simp]:
   ptaut ((VAR 0) -> (DISJ (VAR 0) (VAR 1))) ∧
   ptaut (DOUBLE_IMP (VAR 0) ¬¬(VAR 0)) ∧
   ptaut (DOUBLE_IMP (AND (VAR 0) (VAR 1)) (AND (VAR 1) (VAR 0))) ∧
-  ptaut ((VAR 0) -> ((VAR 1) -> (AND (VAR 1) (VAR 0))))  ∧
+   (*  A -> (B -> (A AND B)) *)
+  ptaut ((VAR 0) -> ((VAR 1) -> (AND (VAR 0) (VAR 1))))  ∧
+  (*  A -> (B -> (B AND A)) *)
+  ptaut ((VAR 0) -> ((VAR 1) -> (AND (VAR 1) (VAR 0)))) ∧
   ptaut (DOUBLE_IMP ⊥ ⊥) ∧
-  ptaut (IMP (DOUBLE_IMP (VAR 0) (VAR 1)) (DOUBLE_IMP (NOT (VAR 0)) (NOT (VAR 1))))
+  ptaut (IMP (DOUBLE_IMP (VAR 0) (VAR 1)) (DOUBLE_IMP (NOT (VAR 0)) (NOT (VAR 1)))) ∧
+  ptaut ((DOUBLE_IMP (VAR 0) (VAR 1)) -> (IMP (VAR 0) (VAR 1))) ∧
+  ptaut ((DOUBLE_IMP (VAR 0) (VAR 1)) -> (IMP (VAR 1) (VAR 0)))
 Proof 
   simp[ptaut_def, AND_def, IMP_def, DOUBLE_IMP_def] >>
   metis_tac[]
@@ -143,11 +157,11 @@ QED
 
 (* All instances of Axims are gtt provable *)
 Theorem subst_ptaut[simp]:
-∀Q P G.  ptaut (Q: num form)  ∧ (∃f. subst f Q = P) ==> gtt KAxioms G P
+∀Q P G Ax. ptaut (Q: num form)  ∧ (∃f. subst f Q = P) ==> gtt (Ax ∪ KDAxioms) G P
 Proof 
   rw[] >>
-  `Q ∈ {a | ptaut a} ∪ {□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)}` by simp[UNION_DEF] >>
-  metis_tac[gtt_rules, KAxioms_def, CPLAxioms_def]
+  `Q ∈ Ax ∪ KDAxioms` by rw[UNION_DEF, KDAxioms_def, CPLAxioms_def] >>
+  metis_tac[gtt_rules]
 QED 
 
 Theorem gtt_Ext:
@@ -187,8 +201,8 @@ Theorem gtt_disj:
 Proof 
   `subst (λs. if s = 0 then A else B) ((VAR 0) -> (DISJ (VAR 0) (VAR 1))) = (A -> (DISJ A B))` by simp[subst_def] >>
   `ptaut ((VAR 0) -> (DISJ (VAR 0) (VAR 1)))` by rw[ptaut_thms] >>
-  rw[] >>
-  `gtt KAxioms G (A -> (DISJ A B))` by metis_tac[subst_ptaut] >>
+  `gtt Ax G (DOUBLE_IMP A B -> A -> B)` by metis_tac[subst_ptaut] >>
+
    metis_tac[gtt_rules]
 QED 
 
@@ -235,6 +249,7 @@ Proof
    metis_tac[subst_ptaut]
 QED 
 
+(*
 Theorem gtt_diam_not_not:
 ∀G A.  gtt KAxioms G (DIAM (¬¬ A)) ⇔ gtt KAxioms G (DIAM A)
 Proof 
@@ -243,7 +258,8 @@ Proof
   >>
   Induct_on`gtt` >> rw[]
 QED 
-
+*)
+(*
 Theorem gtt_A_not_not_B:
   ∀A B. gtt KAxioms G (A -> B) ⇒ gtt KAxioms G (A -> ¬¬B)
 Proof 
@@ -253,9 +269,11 @@ Proof
   >-
   >>
 QED 
+*)
 
 (* gtt Ax ∅ ((A->B) -> (DIAM A -> DIAM B))*)
 
+(*
 Theorem gtt_add_DIAM:
  ∀A B. gtt Ax ∅ (A -> B) ⇒ gtt Ax ∅ (DIAM A -> DIAM B)
 Proof 
@@ -269,8 +287,9 @@ Proof
   metis_tac[subst_ptaut]
 QED 
 
+*)
 
-Theorem gtt_double_imp:
+Theorem gtt_double_imp_self:
  ∀A. gtt KAxioms ∅ (DOUBLE_IMP A A) 
 Proof 
   `ptaut (DOUBLE_IMP (VAR 0) (VAR 0))` by simp[ptaut_thms] >>
@@ -279,7 +298,7 @@ Proof
    metis_tac[subst_ptaut]
 QED 
 
-
+(*
 Theorem gtt_disj_double_imp:
 ∀XA XB YA YB. 
   gtt KAxioms ∅ (DOUBLE_IMP XA XB) ∧ gtt KAxioms ∅ (DOUBLE_IMP YA YB) 
@@ -287,6 +306,7 @@ Theorem gtt_disj_double_imp:
 Proof 
   cheat
 QED 
+*)
 
 (*
 Theorem gtt_ptaut[simp]:
@@ -299,6 +319,7 @@ Proof
   >> 
 QED 
 *)
+(*
 Theorem gtt_transitive_double_imp:
 ∀G A B C.  gtt KAxioms G (DOUBLE_IMP A B) ∧ gtt KAxioms G (DOUBLE_IMP B C)
           ==> 
@@ -306,7 +327,9 @@ Theorem gtt_transitive_double_imp:
 Proof 
 
 QED
+*)
 
+(*
 
 Theorem gtt_subst_eqv_terms:
 ∀X A B. 
@@ -351,38 +374,115 @@ Proof
   >> metis_tac[gtt_empty_subst]
   >> rw[DOUBLE_IMP_def] >> rw[IMP_def]
 QED
+*)
 
+Theorem gtt_double_imp_decompose_ltr:
+∀A B Ax G. (KDAxioms ⊆ Ax) ⇒ gtt Ax G (DOUBLE_IMP A B) ⇒ gtt Ax G (A -> B)
+Proof 
+  rw[] >> 
+  `subst (λs. if s = 0 then A else B) (DOUBLE_IMP (VAR 0) (VAR 1) -> VAR 0 -> VAR 1) = (DOUBLE_IMP A B -> A -> B)`
+    by simp[DOUBLE_IMP_def, subst_def, IMP_def, AND_def] >>
+  `ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> VAR 0 -> VAR 1)` by simp[ptaut_thms] >>
+  `gtt (Ax ∪ KDAxioms) G (DOUBLE_IMP A B -> A -> B)` by metis_tac[subst_ptaut] >> 
+  `gtt Ax G (DOUBLE_IMP A B -> A -> B)` by metis_tac[SUBSET_UNION_ABSORPTION, UNION_COMM] >>
+  metis_tac[gtt_rules]
+QED 
+
+Theorem gtt_double_imp_decompose_rtl:
+∀A B Ax G. (KDAxioms ⊆ Ax) ⇒ gtt Ax G (DOUBLE_IMP A B) ⇒ gtt Ax G (B -> A)
+Proof 
+  rw[] >> 
+  `subst (λs. if s = 0 then A else B) (DOUBLE_IMP (VAR 0) (VAR 1) -> VAR 1 -> VAR 0) = (DOUBLE_IMP A B -> B -> A)`
+    by simp[DOUBLE_IMP_def, subst_def, IMP_def, AND_def] >>
+  `ptaut (DOUBLE_IMP (VAR 0) (VAR 1) -> VAR 1 -> VAR 0)` by simp[ptaut_thms] >>
+  `gtt (Ax ∪ KDAxioms) G (DOUBLE_IMP A B -> B -> A)` by metis_tac[subst_ptaut] >> 
+  `gtt Ax G (DOUBLE_IMP A B -> B -> A)` by metis_tac[SUBSET_UNION_ABSORPTION, UNION_COMM] >>
+  metis_tac[gtt_rules]
+QED 
 
 Theorem gTk:
- ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KAxioms) ∅ f)
+ ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KDAxioms) ∅ f)
 Proof
   Induct_on `KGproof` >> rw[] >> simp[gtt_rules, gttEmpG]
   >- metis_tac[gtt_rules]  (* MP *)
   >- (`subst (λs. if s = 0 then form1 else form2)
         (□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1))
         = (□ (form1 -> form2) -> □ form1 -> □ form2) ` by simp[] >>
-        `(□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)) ∈ (Ax ∪ KAxioms)` by simp[KAxioms_def] >>
+        `(□ (VAR 0 -> VAR 1) -> □ (VAR 0) -> □ (VAR 1)) ∈ (Ax ∪ KDAxioms)` by simp[KDAxioms_def] >>
       metis_tac[gtt_rules])  (* K axiom instance *)
 (* DIAM q -> NOT BOX (NOT q) *)
-  >- ((*rw[BOX_def] >> `subst (λs. form) ((VAR 0) -> ¬¬ (VAR 0)) = (form -> ¬¬ form)` by simp[ptaut_thms] >>
-     `ptaut ((VAR 0) -> ¬¬ (VAR 0))` by simp[ptaut_thms] >> 
-     `gtt KAxioms ∅ (form -> ¬¬form)` by metis_tac[subst_ptaut] >>
-     `gtt (Ax ∪ KAxioms) ∅ (form -> ¬¬form)` by metis_tac[gtt_Ext, UNION_COMM] >>
-     rw[gtt_rules, KAxioms_def, CPLAxioms_def] >> 
-      rw[IMP_def] 
-      >> rw[ptaut_def]*)
-      rw[KAxioms_def, BOX_def] >> cheat)
+  >- (`subst (λs. form) (DOUBLE_IMP (◇ (VAR 0)) (¬□ (¬VAR 0))) = (DOUBLE_IMP (◇ form) (¬□ (¬form)))`
+         by simp[DOUBLE_IMP_def, IMP_def, BOX_def, subst_def, AND_def] >> 
+      `(DOUBLE_IMP (◇ (VAR 0)) (¬□ (¬VAR 0))) ∈ (Ax ∪ KDAxioms)` 
+          by simp[KDAxioms_def] >> 
+      `gtt (Ax ∪ KDAxioms) ∅ (DOUBLE_IMP (◇ form) (¬□ (¬form)))` by metis_tac[gtt_rules] >>
+       irule gtt_double_imp_decompose_ltr >>
+       rw[])
 (* NOT BOX (NOT q) -> DIAM q *)
-  >- cheat
+  >- (`subst (λs. form) (DOUBLE_IMP (◇ (VAR 0)) (¬□ (¬VAR 0))) = (DOUBLE_IMP (◇ form) (¬□ (¬form)))`
+         by simp[DOUBLE_IMP_def, IMP_def, BOX_def, subst_def, AND_def] >> 
+      `(DOUBLE_IMP (◇ (VAR 0)) (¬□ (¬VAR 0))) ∈ (Ax ∪ KDAxioms)` 
+          by simp[KDAxioms_def] >> 
+      `gtt (Ax ∪ KDAxioms) ∅ (DOUBLE_IMP (◇ form) (¬□ (¬form)))` by metis_tac[gtt_rules] >>
+       irule gtt_double_imp_decompose_rtl >>
+       rw[])
   >- metis_tac[subst_ptaut, gtt_Ext, UNION_COMM, subst_self] (* ptaut f *)
   >> metis_tac[gtt_Ext, UNION_COMM, subst_self, gtt_rules]
 QED
 
 
-Theorem kTg:
-  (∀f ∈ p. gtt (Ax ∪ KAxioms) ∅ f) ⇒ ∀Ax p. KGproof Ax p
-Proof 
+(*
+val (KGproof_rules, KGproof_ind, KGproof_cases) = Hol_reln`
+  KGproof (Ax:'a form set) [] /\
+  (!p form1 form2.
+    KGproof Ax p /\ MEM (IMP form1 form2) p /\ MEM form1 p ==>
+    KGproof Ax (p ++ [form2])) /\
+  (!p form f.
+    KGproof Ax p /\ MEM form p ==> KGproof Ax (p ++ [subst f form])) /\
+  (!p form. KGproof Ax p /\ MEM form p ==> KGproof Ax (p ++ [BOX form])) /\
+  (!p form1 form2. KGproof Ax p ==> KGproof Ax (p ++ [IMP (BOX (IMP form1 form2)) (IMP (BOX form1) (BOX form2))])) /\
+  (!p form. KGproof Ax p ==> KGproof Ax (p ++ [IMP (DIAM form) (NOT (BOX (NOT form)))])) /\
+  (!p form. KGproof Ax p ==> KGproof Ax (p ++ [IMP (NOT (BOX (NOT form))) (DIAM form)])) /\
+  (!p form. KGproof Ax p /\ ptaut form ==> KGproof Ax (p ++ [form])) /\
+  (!p form. KGproof Ax p /\ form IN Ax ==> KGproof Ax (p ++ [form]))
+`;    
+*)
+ 
 
-QED
+Theorem kTg:
+  ∀Ax (f: num form). gtt (Ax ∪ KDAxioms) ∅ f ⇒ ∃ (p:num form list). MEM f p ∧ KGproof Ax p 
+Proof
+  strip_tac >>
+  `KGproof Ax []` by metis_tac[KGproof_rules] >>
+  Induct_on `gtt` >> rw[]
+  >- (qexists_tac `[f; subst s f]` >> rw[] >>
+      `KGproof Ax [f]` by metis_tac[KGproof_rules, APPEND] >>
+      metis_tac[KGproof_rules, APPEND, MEM])
+  >- (fs[KDAxioms_def, CPLAxioms_def] 
+      >- (qexists_tac `[f; subst s f]` >> rw[] >>
+      `KGproof Ax [f]` by metis_tac[KGproof_rules, APPEND] >>
+      metis_tac[KGproof_rules, APPEND, MEM])
+      >- (qexists_tac `[□ (s 0 -> s 1) -> □ (s 0) -> □ (s 1)]` >> rw[] 
+           >> metis_tac[KGproof_rules, APPEND, MEM])
+      >> rw[DOUBLE_IMP_def]
+      >> qabbrev_tac `A = IMP (DIAM (VAR 0)) (NOT (BOX (NOT (VAR 0))))`
+      >> qabbrev_tac `B = IMP (NOT (BOX (NOT (VAR 0)))) (DIAM (VAR 0))`
+      >> qexists_tac `[A; B;((VAR 0) -> ((VAR 1) -> (AND (VAR 0) (VAR 1))));
+             A -> (B -> (AND A B)); B -> (AND A B); AND A B; subst s (AND A B)]` 
+      >> rw[]
+      >> `subst (λs. if s = 0 then A else B) ( (VAR 0) -> ( (VAR 1) -> ( AND (VAR 0) (VAR 1) ) ) ) 
+        = (A -> (B -> (AND A B)))` by simp[subst_def, IMP_def, AND_def]
+      >> `KGproof Ax
+          [A; B; VAR 0 -> VAR 1 -> AND (VAR 0) (VAR 1);
+           subst (λs. if s = 0 then A else B) ( (VAR 0) -> ( (VAR 1) -> ( AND (VAR 0) (VAR 1) ) ) )]`
+              by metis_tac[KGproof_rules, APPEND, ptaut_thms, MEM] 
+      >> rfs[]
+      >> metis_tac[KGproof_rules, APPEND, MEM])
+  >- (qexists_tac`p'++p++[f']` >> rw[] >>
+      `KGproof Ax (p'++p)` by metis_tac[KGproof_APPEND] >>
+      metis_tac[KGproof_rules, APPEND, MEM, KGproof_APPEND, MEM_APPEND])
+  >> qexists_tac`p++[□ f]` >> rw[] >> metis_tac[KGproof_rules, APPEND, MEM, KGproof_APPEND, MEM_APPEND]
+QED 
+
 
 val _ = export_theory()
