@@ -431,24 +431,6 @@ Proof
 QED
 
 
-(*
-val (KGproof_rules, KGproof_ind, KGproof_cases) = Hol_reln`
-  KGproof (Ax:'a form set) [] /\
-  (!p form1 form2.
-    KGproof Ax p /\ MEM (IMP form1 form2) p /\ MEM form1 p ==>
-    KGproof Ax (p ++ [form2])) /\
-  (!p form f.
-    KGproof Ax p /\ MEM form p ==> KGproof Ax (p ++ [subst f form])) /\
-  (!p form. KGproof Ax p /\ MEM form p ==> KGproof Ax (p ++ [BOX form])) /\
-  (!p form1 form2. KGproof Ax p ==> KGproof Ax (p ++ [IMP (BOX (IMP form1 form2)) (IMP (BOX form1) (BOX form2))])) /\
-  (!p form. KGproof Ax p ==> KGproof Ax (p ++ [IMP (DIAM form) (NOT (BOX (NOT form)))])) /\
-  (!p form. KGproof Ax p ==> KGproof Ax (p ++ [IMP (NOT (BOX (NOT form))) (DIAM form)])) /\
-  (!p form. KGproof Ax p /\ ptaut form ==> KGproof Ax (p ++ [form])) /\
-  (!p form. KGproof Ax p /\ form IN Ax ==> KGproof Ax (p ++ [form]))
-`;    
-*)
- 
-
 Theorem kTg:
   ∀Ax (f: num form). gtt (Ax ∪ KDAxioms) ∅ f ⇒ ∃ (p:num form list). MEM f p ∧ KGproof Ax p 
 Proof
@@ -483,6 +465,9 @@ Proof
       metis_tac[KGproof_rules, APPEND, MEM, KGproof_APPEND, MEM_APPEND])
   >> qexists_tac`p++[□ f]` >> rw[] >> metis_tac[KGproof_rules, APPEND, MEM, KGproof_APPEND, MEM_APPEND]
 QED 
+
+
+
 
 
 val _ = export_theory()
