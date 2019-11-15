@@ -29,6 +29,8 @@ Center for the Study of Language and Information, Stanford, 1987}
 
 *)
 
+(* gtt: global turn style t? *)
+
 Definition CPLAxioms_def:
 CPLAxioms = {a | ptaut a}
 End
@@ -55,6 +57,12 @@ Inductive gtt:
 	(∀f1 f2. gtt Ax G f1 ∧ gtt Ax G (f1 -> f2) ⇒ gtt Ax G f2) ∧
 	(∀f. gtt Ax G f ⇒ gtt Ax G (□ f))
 End
+
+(*
+--------------------------------------------
+------ Equivalence between gtt and kG ------
+--------------------------------------------
+*)
 
 Theorem subst_compose:
   ∀f g x. subst g (subst f x) = subst ((subst g) o f) x 
@@ -468,6 +476,28 @@ QED
 
 
 
+(*
+--------------------------------------------------------
+-------------- Global Completeness Proof  --------------
+--------------------------------------------------------
+*)
 
+
+
+(* Lemma 6: Every consistent set Y is extendable into a max-consist X where Y is a proper subset of X *)
+Theorem MCS_Constrct:
+   
+Proof 
+QED 
+
+
+
+
+(*
+Theorem gtt_Completenss:
+
+Proof 
+QED 
+*)
 
 val _ = export_theory()
