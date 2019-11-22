@@ -29,7 +29,7 @@ Center for the Study of Language and Information, Stanford, 1987}
 
 *)
 
-(* gtt: global turn style t? *)
+(* gtt: global turnstile t? *)
 
 Definition CPLAxioms_def:
 CPLAxioms = {a | ptaut a}
@@ -127,7 +127,9 @@ Proof
 QED
 
 
-(*  NOT NOT A = A 
+(*  
+    
+    NOT NOT A = A 
     A OR NOT A = T
     AND elimination 
     A <-> A
@@ -215,7 +217,7 @@ Proof
 QED 
 
 
-Theorem gttDoubleImp:
+Theorem gtt_Double_Imp:
   gtt KAxioms G (DOUBLE_IMP A B) ⇒ (gtt KAxioms G A ⇔ gtt KAxioms G B)
 Proof 
   rw[DOUBLE_IMP_def] >> rw[EQ_IMP_THM] >> fs[]
@@ -408,6 +410,7 @@ Proof
   metis_tac[gtt_rules]
 QED 
 
+
 Theorem gTk:
  ∀(p :num form list). (KGproof Ax p) ⇒ (∀f. (MEM f p) ⇒ gtt (Ax ∪ KDAxioms) ∅ f)
 Proof
@@ -482,14 +485,27 @@ QED
 --------------------------------------------------------
 *)
 
+(* Consistent Definition *)
+(*
+Theorem Consist_Set:
+  Consist_Set S = ∀x. x ∈ S ⇒ (NOT x) ∉ S
+Proof 
+QED
 
+Theorem Inconsist_Set:
+Proof 
+QED 
+*)
 
 (* Lemma 6: Every consistent set Y is extendable into a max-consist X where Y is a proper subset of X *)
+(*
 Theorem MCS_Constrct:
    
 Proof 
 QED 
-
+*)
+(* Lemma 
+*)
 
 
 
