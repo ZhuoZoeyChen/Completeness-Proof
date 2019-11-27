@@ -41,7 +41,7 @@ of modal logic.
 
 \section{Introduction}
 
-Many existing textbook completeness proofs of modal logic naivley says if $\models (\wedge \Gamma) \rightarrow \varphi$ 
+Many existing textbook completeness proofs of modal logic naively say if $\models (\wedge \Gamma) \rightarrow \varphi$ 
 then $\emptyset \vdash (\wedge \Gamma) \rightarrow \varphi$. 
 This is not right because they are confusing local deducibility with 
 global deducibility. The correct statement should be if
@@ -97,8 +97,8 @@ deducibility is defined.
  | DIAM form`;
 \end{verbatim}
  
-We use $VAR$ to notate the given formula is an atom which only 
-constitutes one value. 
+We use $VAR$ to notate atoms which only 
+constitute one value. 
 $\vee, \bot, \neg$ and $\diamond$ are taken as primitive connectives.
 All the other connectives are defined in terms of these four connectives.
 $\rightarrow, \leftrightarrow, \wedge$ and $\top$ are defined in the same way as 
@@ -136,7 +136,9 @@ to the inner formulae
 \subsubsection{KGproof}
 KGproof represents local deducibility ($\vdash_l)$.
 \paragraph{Notation} We notate a list of formulae (p) locally deducible 
-from a set of axioms (Ax) by $Ax \vdash_l p$. 
+from a set of axioms (Ax) by $Ax \vdash_l p$\footnote{We are notating in this way because that follows 
+from the code, in logic proving we usually write axioms in the definition rather than the assumption. The same goes 
+for all the notations in this report}. 
 \paragraph{Rules} We have emtpy p ($Ax \vdash_l []$) as the base case. 
 Appending new elements onto the list if they can be obtained from the existing 
 elements in the list by the following derivation rules: modus ponens, Ax (instantiation), 
