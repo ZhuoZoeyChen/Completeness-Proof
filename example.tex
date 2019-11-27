@@ -1,6 +1,6 @@
 \documentclass[submission,copyright,creativecommons]{eptcs}
 \providecommand{\event}{COMP4630 ASE} % Name of the event you are submitting to
-\usepackage{breakurl}             % Not needed if you use pdflatex only.
+\usepackage{breakurl} % Not needed if you use pdflatex only.
 \usepackage{todonotes}
 \usepackage{amsmath,amssymb}
 \usepackage{bussproofs}
@@ -32,11 +32,11 @@ Canberra, Australia}
 
 \begin{abstract}
 In modal logic, there are two different deducibility notations: global deducibility 
-and local deducibility. In HOL4, local deducibility has been defined along with proofs 
+and local deductibility. In HOL4, local deducibility has been defined along with proofs 
 of some of its properties. In this report, we present how we defined global deducibility
 and proved that given no assumptions other than axioms, we have that global deducibility and local deducibility
-are equivalent to each other. This can be used as a tool to assist proving the completeness 
-of modal logic.  
+are equivalent to each other. This can be used as a tool to assist in proving the completeness 
+of modal logic. 
 \end{abstract}
 
 \section{Introduction}
@@ -61,8 +61,7 @@ such that $\emptyset \vdash (\psi_1 \wedge \psi_2 \wedge \dots \wedge \psi_n) \r
 
 
 Using the transformation between local and global deducibility we 
-are still able to do the similar completenss proof but in a more 
-rigid way. However, not everyone are convinced.
+are still able to do similar completeness proof but in a more rigid way. However, not everyone is convinced.
 
 We want to formalise our proof to show that our proof is correct and 
 can be trusted. The first step is to show the relation between local and global deducibility,
@@ -74,10 +73,10 @@ valuable thinking procedure.
 \section{Background}
 The motivation of our work is to enable us to do the 
 completeness proof for modal logic using local and global deducibility models. 
-Many existing textbook proofs for completenss of modal logic mixes 
-local and global deducibilities up as one thing and prove the completenss 
+Many existing textbook proofs for completeness of modal logic mix 
+local deducibility and global deducibility up as one thing and prove the completeness 
 through this easy way out. We want to show that they should not 
-think that local and global deducibilities are the same by formalising 
+think that local deducibility and global deducibility are the same by formalising 
 the proof. 
 
 Our work is built on top of some existing work on modal logic in HOL4\cite{yiming} by Yiming Xu.
@@ -89,37 +88,37 @@ deducibility is defined.
 \subsubsection{Definition}
 \label{mldef}
 \begin{verbatim}
-  val _ = Datatype`
-  form
-  = VAR num
-  | DISJ form form
-  | FALSE
-  | NOT form
-  | DIAM form`;
+ val _ = Datatype`
+ form
+ = VAR num
+ | DISJ form form
+ | FALSE
+ | NOT form
+ | DIAM form`;
 \end{verbatim}
  
 We use $VAR$ to notate the given formula is an atom which only 
-constitute one value. 
+constitutes one value. 
 $\vee, \bot, \neg$ and $\diamond$ are taken as primitive connectives.
 All the other connectives are defined in terms of these four connectives.
 $\rightarrow, \leftrightarrow, \wedge$ and $\top$ are defined in the same way as 
 in propositional logic. The important thing to notice is that we define 
 $\square p$ to be $\neg \diamond \neg p$. 
 
-All the definitions here are on syntactical level. 
+All the definitions here are on the syntactical level. 
 
 
 \subsubsection{Instantiation: subst}
 The instantiation of axioms are implemented by a function: \texttt{subst}.
 \texttt{subst}'s definition in HOL4 is shown below:
 \begin{verbatim}
-  val subst_def =
-  Define
-    `subst f FALSE = FALSE /\
-     subst f (VAR p) = f p /\
-     subst f (DISJ form1 form2) = DISJ (subst f form1) (subst f form2) /\
-     subst f (NOT form) = NOT (subst f form) /\
-     subst f (DIAM form) = DIAM (subst f form)`;
+ val subst_def =
+ Define
+ `subst f FALSE = FALSE /\
+ subst f (VAR p) = f p /\
+ subst f (DISJ form1 form2) = DISJ (subst f form1) (subst f form2) /\
+ subst f (NOT form) = NOT (subst f form) /\
+ subst f (DIAM form) = DIAM (subst f form)`;
 \end{verbatim}
 
 Each line of the definition represents one rule for \texttt{subst}:
@@ -140,12 +139,12 @@ KGproof represents local deducibility ($\vdash_l)$.
 from a set of axioms (Ax) by $Ax \vdash_l p$. 
 \paragraph{Rules} We have emtpy p ($Ax \vdash_l []$) as the base case. 
 Appending new elements onto the list if they can be obtained from the existing 
-elements in the list by the following derivation rules: modus ponent, Ax (instantiation), 
-neccecitation, K axiom (instantiation), Dual axiom (instantiation) (two directions are written seperately as 
+elements in the list by the following derivation rules: modus ponens, Ax (instantiation), 
+necessitation, K axiom (instantiation), Dual axiom (instantiation) (two directions are written separately as 
 two rules), propositional tautology and element in the list instantiation. 
 Note that the last rule holds because all the elements in the list only 
 come from axioms (including Ax, K and Dual axioms) or propositional tautologies, 
-of whose all instances are true to begin with. 
+of whose all instances are true, to begin with. 
 
 
 
@@ -158,25 +157,25 @@ and a set of assumptions ($\Gamma$) by $Ax, \Gamma \vdash f$.
 \subsection{Rules}
 We then add rules for gtt. 
 \begin{itemize}
-  \item (Id) If f is in $\Gamma$ then $Ax, \Gamma \vdash f$. 
-  \item (Ax) All instances of $Ax$ are gtt provable. $Ax, \Gamma \vdash axf$ where $axf$ is 
-  any arbitrary instance of $Ax$. Instantiation is  
-  \item (MP) If $Ax, \Gamma \vdash f1$ and $Ax, \Gamma \vdash (f1 \rightarrow f2)$, then 
-  we have $Ax, \Gamma \vdash f2$
-  \item (Nec) If $Ax, \Gamma \vdash f$ then $Ax, \Gamma \vdash \square f$ 
+ \item (Id) If f is in $\Gamma$ then $Ax, \Gamma \vdash f$. 
+ \item (Ax) All instances of $Ax$ are gtt provable. $Ax, \Gamma \vdash axf$ where $axf$ is 
+ any arbitrary instance of $Ax$. Instantiation is 
+ \item (MP) If $Ax, \Gamma \vdash f1$ and $Ax, \Gamma \vdash (f1 \rightarrow f2)$, then 
+ we have $Ax, \Gamma \vdash f2$
+ \item (Nec) If $Ax, \Gamma \vdash f$ then $Ax, \Gamma \vdash \square f$ 
 \end{itemize}
 
 \section{Before Proof: key ideas}
 We want to prove that KGproof and gtt \footnote{with empty assumption $\Gamma$, 
 we will call this gtt as gttE to simplify the further writing in this report}
  are as effective 
-in order to show the equivalence between global deducibility (with no assumptions $\Gamma$) and local deducibility. 
+to show the equivalence between global deducibility (with no assumptions $\Gamma$) and local deductibility. 
 
 To do so, we need to prove that gttE
 can prove everything that KGproof can prove; 
 we also need to prove that KGproof can prove everything that gttE can prove.
 
-The proofs will have a top level induction on all the rules of gtt or KGproof depending on which 
+The proofs will have a top-level induction on all the rules of gtt or KGproof depending on which 
 proof we are doing. We then use the deduction rules of the other one and some helper lemmas 
 to prove that the rules we get from the top level induction.
 
@@ -188,14 +187,14 @@ in section~\ref{final}.
 
 \subsection{Proof Goal}
 
-Our attemp was trying to prove that gttE is at least as strong as KGproof.
+Our attempt was trying to prove that gttE is at least as strong as KGproof.
 In other words, we want to prove that everything that can be proved by KGproof with axiom set $Ax$
 must be provable using gttE with the same axiom set $Ax$ with a few additional axioms.
-Note that we need the additional axioms here because KGproof incoded some axioms (such as K axiom) 
+Note that we need the additional axioms here because KGproof encoded some axioms (such as K axiom) 
 in their rules, rather than taking them from external. If we want to achieve the same 
 thing we have to take these axioms in by ourselves too. 
 
-We then formalise our idea using HOL4 and wrote the following goal\footnote{The exclaimation mark (!) here means for all here} to prove:
+We then formalise our idea using HOL4 and wrote the following goal\footnote{The exclamation mark (!) here means for all here} to prove:
 
 
 $$Ax \vdash_l p \Rightarrow \forall f. f \in p \Rightarrow (Ax\cup KAxioms) \vdash f$$
@@ -216,17 +215,17 @@ $Ax \cup KAxioms \vdash \neg \square \neg p \rightarrow \diamond p$.
 We try to write lemmas to overcome the difficulty mentioned above.
 We first observe that using gttE, proving $Ax \cup KAxioms \vdash \diamond p \rightarrow \neg \square \neg p$ and 
 $Ax \cup KAxioms \vdash \neg \square \neg p \rightarrow \diamond p$ is equivalent to 
-proving  $Ax \cup KAxioms \vdash \diamond p \leftrightarrow \neg \square \neg p$ then split them.
+proving $Ax \cup KAxioms \vdash \diamond p \leftrightarrow \neg \square \neg p$ then split them.
 
 We then expand the syntactical definition of $\square$ 
 \footnote{mentioned in Background, Modal Logic in HOL4, Definition: $\square p = \neg \diamond \neg p $} and 
-get new goal  $Ax \cup KAxioms \vdash \diamond p \leftrightarrow \neg \neg \diamond \neg \neg p$ 
+get new goal $Ax \cup KAxioms \vdash \diamond p \leftrightarrow \neg \neg \diamond \neg \neg p$ 
 
 The double negation on the outer side is easy to remove using the lemma 
 \texttt{gtt\_double\_imp\_self}, which essentially says $KAxioms \vdash (p \leftrightarrow \neg \neg p)$
 for any formulae $p$. The mismatch of axiom sets of the lemma and our goal is easy 
-to solve by the extention lemma~\ref{ext}. The 
-extension lemma shows that extending axiom set preserves the gtt provable terms.  So what we need to show now\footnote{MP is 
+to solve by the extension lemma~\ref{ext}. The 
+extension lemma shows that extending axiom set preserves the gtt provable terms. So what we need to show now\footnote{MP is 
 used implicitly here to simplify our goal} is 
 $Ax \cup KAxioms \vdash \diamond p \leftrightarrow \diamond \neg \neg p$ 
 
@@ -236,8 +235,8 @@ and \texttt{gtt\_subst\_eqv\_terms}.
 
 \paragraph{gtt\_add\_DIAM} If $Ax \vdash p1 \rightarrow p2$ then $Ax \vdash \diamond p1 \rightarrow \diamond p2$.
 This lemma tries to attach diamonds inside an implication. 
-We run into issues immediately because the first subgoal of this 
-proof is to prove that if from our axioms we have one instance that 
+We run into issues immediately because of the first subgoal of this 
+proof, which is to prove that if from our axioms we have one instance that 
 is $p1 \rightarrow p2$ (which means $Ax \vdash p1 \rightarrow p2$ by 
 deduction rules of gtt), then we can have $Ax \vdash \diamond p1 \rightarrow \diamond p2$.
 This subgoal is the same as our lemma! So this lemma is not provable. 
@@ -253,45 +252,45 @@ proof by inducting on the structure of $p3$, of whose top level
 connective can either be nothing (it's an atom with constructor \texttt{VAR}
 or $\bot$), $\vee, \neg$ or $\diamond$. We then prove each subgoal:
 \begin{itemize}
-  \item \texttt{VAR}: Proved by applying the definition of substitution.
-  \item $\vee$: Proved by using the propositional tautology which says 
-  $((x1 \leftrightarrow x2) \rightarrow (y1 \leftrightarrow y2)) \rightarrow ((x1 \vee y1)\leftrightarrow(x2 \vee y2)) $ (proved in lemma \texttt{ptaut\_disj\_double\_imp})
-  So we have that if $p3$ is in the form $x \vee y$ then we have 
-  $p3[v:=p1] \leftrightarrow p3[v:=p2]$ where $p3[v:=p1] = x1 \vee y1$ and $p3[v:=p2] = x2 \vee y2$.
-  \item $\bot$: Proved by using the propositional tautology that $\bot \leftrightarrow \bot$.
-  \item $\neg$: Proved by using the propositional tautology that $(a \leftrightarrow b)
-  \rightarrow (\neg a \leftrightarrow \neg b)$.
-  \item $\diamond$: we get stuck because this is in the same structure as the previous lemma
-  (gtt\_add\_DIAM), which is discussed and shown as unprovable. The detailed condition of this 
-  subgoal in HOL4 is shown below:
-  \begin{verbatim}
-    0.  !p1 p2.
-            gtt KAxioms EMPTYSET (DOUBLE_IMP p1 p2) ==>
-            gtt KAxioms EMPTYSET (DOUBLE_IMP (subst (\v. p1) p3) (subst (\v. p2) p3))  (*)
-    1.  gtt KAxioms EMPTYSET (DOUBLE_IMP p1 p2)
-   ------------------------------------
-        gtt KAxioms EMPTYSET
-          (DOUBLE_IMP (DIAM (subst (λv. p1) p3)) (DIAM (subst (λv. p2) p3)))
-   
-  \end{verbatim}
+ \item \texttt{VAR}: Proved by applying the definition of substitution.
+ \item $\vee$: Proved by using the propositional tautology which says 
+ $((x1 \leftrightarrow x2) \rightarrow (y1 \leftrightarrow y2)) \rightarrow ((x1 \vee y1)\leftrightarrow(x2 \vee y2)) $ (proved in lemma \texttt{ptaut\_disj\_double\_imp})
+ So we have that if $p3$ is in the form $x \vee y$ then we have 
+ $p3[v:=p1] \leftrightarrow p3[v:=p2]$ where $p3[v:=p1] = x1 \vee y1$ and $p3[v:=p2] = x2 \vee y2$.
+ \item $\bot$: Proved by using the propositional tautology that $\bot \leftrightarrow \bot$.
+ \item $\neg$: Proved by using the propositional tautology that $(a \leftrightarrow b)
+ \rightarrow (\neg a \leftrightarrow \neg b)$.
+ \item $\diamond$: we get stuck because this is in the same structure as the previous lemma
+ (gtt\_add\_DIAM), which is discussed and shown as unprovable. The detailed condition of this 
+ subgoal in HOL4 is shown below:
+ \begin{verbatim}
+ 0. !p1 p2.
+ gtt KAxioms EMPTYSET (DOUBLE_IMP p1 p2) ==>
+ gtt KAxioms EMPTYSET (DOUBLE_IMP (subst (\v. p1) p3) (subst (\v. p2) p3)) (*)
+ 1. gtt KAxioms EMPTYSET (DOUBLE_IMP p1 p2)
+ ------------------------------------
+ gtt KAxioms EMPTYSET
+ (DOUBLE_IMP (DIAM (subst (λv. p1) p3)) (DIAM (subst (λv. p2) p3)))
+ 
+ \end{verbatim}
 
-  Using our notation in this paper, the above code is equivalent to saying we have the followings:
+ Using our notation in this paper, the above code is equivalent to saying we have the followings:
 
-  Assumption 0: $\forall p1 p2. 
-              ((KAxioms \vdash p1 \leftrightarrow p2) \Rightarrow (KAxioms \vdash p3[v:=p1]\leftrightarrow p3[v:=p2]))$;
+ Assumption 0: $\forall p1 p2. 
+ ((KAxioms \vdash p1 \leftrightarrow p2) \Rightarrow (KAxioms \vdash p3[v:=p1]\leftrightarrow p3[v:=p2]))$;
 
-  Assumption 1: $KAxioms \vdash p1 \leftrightarrow p2$
+ Assumption 1: $KAxioms \vdash p1 \leftrightarrow p2$
 
-  Goal: $KAxioms \vdash \diamond p3[v:=p1] \leftrightarrow \diamond p3[v:=p2]$
+ Goal: $KAxioms \vdash \diamond p3[v:=p1] \leftrightarrow \diamond p3[v:=p2]$
 
 
-  Another way of thinking 
-  about this problem is that we can try to use necessatation rule to push $\square$
-  into assumption 1 and then use assumption 0 to obtain the boxed version of 
-  line (*). Now seems like we just need to expand the definition of $\square$ then convert that 
-  back to $\diamond$. After expanding, we realised that what we need to show is that 
-  we can get from $\neg \diamond \neg p$ to $\diamond p$. This is what we want to prove 
-  using this lemma at the beginning!(Section~\ref{difficulty}).
+ Another way of thinking 
+ about this problem is that we can try to use necessitation rule to push $\square$
+ into assumption 1 and then use assumption 0 to obtain the boxed version of 
+ line (*). Now seems like we just need to expand the definition of $\square$ then convert that 
+ back to $\diamond$. After expanding, we realised that what we need to show is that 
+ we can get from $\neg \diamond \neg p$ to $\diamond p$. This is what we want to prove 
+ using this lemma at the beginning!(Section~\ref{difficulty}).
 \end{itemize}
 
 We end up in a loop, which suggests that this lemma is not able to help prove the desired 
@@ -299,9 +298,9 @@ theorem discussed in section~\ref{difficulty}.
 
 \subsection{Analysis}
 
-We then did some pen and paper analysis about this phenomenum.
+We then did some pen and paper analysis about this phenomenon.
 
-Idealy, we should be able to obtain a $\diamond$ version of K axiom,
+Ideally, we should be able to obtain a $\diamond$ version of K axiom,
 which is what our first lemma \texttt{gtt\_add\_DIAM} trying to do.
 
 So we want to start from $\vdash \varphi \rightarrow \psi$ and 
@@ -309,12 +308,12 @@ get $\vdash \diamond \varphi \rightarrow \diamond \psi$.
 Our thinking procedure is shown below:
 
 \begin{prooftree}
-  \AxiomC{$\vdash \varphi \rightarrow \psi$} 
-  \UnaryInfC{$\vdash \neg \psi \rightarrow \neg \varphi$}
-  \UnaryInfC{$\vdash \square (\neg \psi \rightarrow \neg \varphi)$}
-  \UnaryInfC{$\vdash \square \neg \psi \rightarrow \square \neg \varphi$}
-  \UnaryInfC{$\vdash \neg \square \neg \varphi \rightarrow \neg \square \neg \psi$}
-  \UnaryInfC{$\vdash \diamond \varphi \rightarrow \diamond \psi$}
+ \AxiomC{$\vdash \varphi \rightarrow \psi$} 
+ \UnaryInfC{$\vdash \neg \psi \rightarrow \neg \varphi$}
+ \UnaryInfC{$\vdash \square (\neg \psi \rightarrow \neg \varphi)$}
+ \UnaryInfC{$\vdash \square \neg \psi \rightarrow \square \neg \varphi$}
+ \UnaryInfC{$\vdash \neg \square \neg \varphi \rightarrow \neg \square \neg \psi$}
+ \UnaryInfC{$\vdash \diamond \varphi \rightarrow \diamond \psi$}
 \end{prooftree}
 
 However, we can not perform such deduction in our system because we have no 
@@ -335,7 +334,7 @@ For the final proof, we add the Dual axiom to the attempted proof and proved
 the desired equivalence. 
 
 \subsection{New Proof Goal}
-The new proof goal is mostly the same as previous attempt, but with an additional 
+The new proof goal is mostly the same as the previous attempt, but with an additional 
 axiom passed to gttE - the Dual axiom.
 
 We then have a new formalised goal as shown below, where KDAxioms is the union 
@@ -347,14 +346,14 @@ $$Ax \vdash_l p \Rightarrow \forall f. f \in p \Rightarrow (Ax\cup KDAxioms) \vd
 To assist the final equivalence proof, we first proved a few lemmas.
 
 \begin{lemma}[gtt\_double\_imp\_decompose\_ltr]
-(KDAxioms $\subseteq$ Ax) $\Rightarrow$  Ax, G $\vdash$ A $\leftrightarrow$ B $\Rightarrow$ Ax, G $\vdash$ (A $\rightarrow$ B)
+(KDAxioms $\subseteq$ Ax) $\Rightarrow$ Ax, G $\vdash$ A $\leftrightarrow$ B $\Rightarrow$ Ax, G $\vdash$ (A $\rightarrow$ B)
 \label{ltr}
 \end{lemma}
 
 \begin{lemma}[gtt\_double\_imp\_decompose\_rtl]
-  (KDAxioms $\subseteq$ Ax) $\Rightarrow$  Ax, G $\vdash$ A $\leftrightarrow$ B $\Rightarrow$ Ax, G $\vdash$ (B $\rightarrow$ A)
-  \label{rtl}
-  \end{lemma}
+ (KDAxioms $\subseteq$ Ax) $\Rightarrow$ Ax, G $\vdash$ A $\leftrightarrow$ B $\Rightarrow$ Ax, G $\vdash$ (B $\rightarrow$ A)
+ \label{rtl}
+ \end{lemma}
 
 \begin{lemma}[subst\_ptaut]
  If p is an instance of a propositional tautology, then Ax, KDAxioms, G $\vdash$ p 
@@ -362,46 +361,46 @@ To assist the final equivalence proof, we first proved a few lemmas.
 \end{lemma}
 
 \begin{lemma}[subst\_self]
-  Applying identity substitution function to any term does not change that term.
-  In other words, every term is an instance of themself. 
+ Applying identity substitution function to any term does not change that term.
+ In other words, every term is an instance of themself. 
 \label{ss}
 \end{lemma}
 
 \begin{lemma}[gtt\_Ext]
-  Ax, G $\vdash$ f $\Rightarrow$ Ax$\cup$Ext, G $\vdash$ f 
+ Ax, G $\vdash$ f $\Rightarrow$ Ax$\cup$Ext, G $\vdash$ f 
 \label{ext}
 \end{lemma}
 
 \subsection{gTk: Global Deducibility Simulates Local Deducibility}
 \textbf{Proof Goal} $Ax \vdash_l p \Rightarrow Ax \cup KDAxioms \vdash f$\footnote{More 
 logical way is to remove all the 
-axioms on the left hand side, they are only listed here because that's how gtt and KGproof 
-are defined in HOL4}. Note that gtt here is not taking any assumptions.
+axioms on the left-hand side, they are only listed here because that's how gtt and KGproof 
+are defined in HOL4}. Note that gtt here is not making any assumptions.
 
 
 We prove this theorem by inducting on KGproof rules on the top level and 
 then prove that gttE can prove each rule as a subgoal.
 \begin{itemize}
-  \item (Nec) We have the same motus ponent rule in gttE (Nec) which can prove it directly.
-  \item (Ax: with instantiation) We have the same rule in gttE (Ax) which can prove it directly.
-  
-  \item (MP) We have the same motus ponent rule in gttE (MP) which can prove it directly.
-
-  \item (K Axiom) Proved by instantiating K axiom then using a gttE rule (Ax). 
-  
-  \item (Dual Axiom) Proved by instantiating Dual axiom then using a gttE rule (Ax). 
-  There is actually a intermediate step to get one direction implication from the 
-  double implication because in KGproof the two directions of implications of Dual axiom 
-  are coded as two seperate rules. The intermediate step used Lemma~\ref{ltr} and Lemma~\ref{rtl}
+ \item (Nec) We have the same modus ponens rule in gttE (Nec) which can prove it directly.
+ \item (Ax: with instantiation) We have the same rule in gttE (Ax) which can prove it directly.
  
-  \item (Ax: propositional tautology) Proved by 1) using Lemma~\ref{sp} to show that all  
-  instances of propositional tautologies are gtt provable; 2) then using Lemma~\ref{ss}
-  to show that each propositional tautology definition is its own instance; 3) lastly using 
-  Lemma~\ref{ext} and HOL4 theorem about the commutitivity of set unions to 
-  get the final proof.
+ \item (MP) We have the same modus ponens rule in gttE (MP) which can prove it directly.
 
-  \item (Ax: without instantiation) Proved by using Lemma~\ref{ss} and Lemma~\ref{ext} in 
-  similar manner as for propositional tautology.
+ \item (K Axiom) Proved by instantiating K axiom then using a gttE rule (Ax). 
+ 
+ \item (Dual Axiom) Proved by instantiating Dual axiom then using a gttE rule (Ax). 
+ There is an intermediate step to get one direction implication from the 
+ double implication because in KGproof the two directions of implications of Dual axiom 
+ are coded as two separate rules. The intermediate step used Lemma~\ref{ltr} and Lemma~\ref{rtl}
+ 
+ \item (Ax: propositional tautology) Proved by 1) using Lemma~\ref{sp} to show that all 
+ instances of propositional tautologies are gtt provable; 2) then using Lemma~\ref{ss}
+ to show that each propositional tautology definition is its instance; 3) lastly using 
+ Lemma~\ref{ext} and HOL4 theorem about the commutativity of set unions to 
+ get the final proof.
+
+ \item (Ax: without instantiation) Proved by using Lemma~\ref{ss} and Lemma~\ref{ext} in 
+ similar manner as for propositional tautology.
  
  
 \end{itemize}
@@ -411,27 +410,27 @@ then prove that gttE can prove each rule as a subgoal.
 \textbf{Proof Goal} $Ax \cup KDAxioms \vdash f \Rightarrow \exists p. f \in p \wedge Ax \vdash_l p$
 
 
-Proof of this direction follows similar idea from the previous 
+Proof of this direction follows a similar idea from the previous 
 direction: we do induction on gtt rules. The tricky 
 part of this proof is to come up with the proving goal. 
 We defined local deducibility to carry around a list of proved items which 
 requires us to store all the proving processes in it for the final 
-proved formula. For instance, if we want to use motus ponent to get 
+proved formula. For instance, if we want to use modus ponens to get 
 $f2$ from $f1 \rightarrow f2$ and $f1$, under the KGproof notation 
 we can only notate $f2$ to be locally deducible by $Ax \vdash_l [f1, f1\rightarrow f2, f2]$.
-We have to have  $f1 \rightarrow f2$ and $f1$ in the list before the appreance of $f2$, even if 
+We have to have $f1 \rightarrow f2$ and $f1$ in the list before the appreance of $f2$, even if 
 $f1 \rightarrow f2$ and $f1$ are straight from axioms. 
 
 \begin{itemize}
-  \item (Id) Ignored because gtt does not take any assumptions ($\Gamma$) in the desired goal.  \item (Ax)
-  \item (Ax) 1). Classical propositional logic(CPL) axioms (propositional tautologies) and K axiom are proved by 
-  direct substitution and appending; 2). Dual axiom is a bit more complicated because we need to prove 
-  two directions seperately using KGproof rules then put them together using propositional tautologies and 
-  modus ponent. We put the two directions together by propositional tautologies:
-  $A\rightarrow (B \rightarrow (A \wedge B))$, where A and B respectively represent 
-  one direction of the implication in Dual axiom. We finish the whole proof by substitution of axioms. 
-  \item (MP) Proved using KGproof's motus ponent rule directly.
-  \item (Nec) Proved using KGproof's neccesitation rule directly.
+ \item (Id) Ignored because gtt does not take any assumptions ($\Gamma$) in the desired goal. \item (Ax)
+ \item (Ax) 1). Classical propositional logic(CPL) axioms (propositional tautologies) and K axiom are proved by 
+ direct substitution and appending; 2). Dual axiom is a bit more complicated because we need to prove 
+ two directions separately using KGproof rules then put them together using propositional tautologies and 
+ modus ponens. We put the two directions together by propositional tautologies:
+ $A\rightarrow (B \rightarrow (A \wedge B))$, where A and B respectively represent 
+ one direction of the implication in Dual axiom. We finish the whole proof by substitution of axioms. 
+ \item (MP) Proved using KGproof's modus ponens rule directly.
+ \item (Nec) Proved using KGproof's necessitation rule directly.
 \end{itemize}
 
 
@@ -443,8 +442,8 @@ to be written in HOL4.
 We also documented our failed attempt with the analysis of the failure, which 
 is a good example of showing how to identify logical errors in proofs in modal logic. 
 
-For future work, we can implement the helper lemmas for completenss proof 
-and prove completenss of modal logic using our global and local deducibility 
+For future work, we can implement the helper lemmas for completeness proof 
+and prove the completeness of modal logic using our global and local deducibility 
 models. 
 
 
